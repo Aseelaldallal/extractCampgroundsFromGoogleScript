@@ -3,19 +3,21 @@ var express           = require("express"),
     app               = express(), 
     randomner         = require('randomner'),
     GooglePlaces      = require('node-googleplaces'),
-    fs                = require('fs');
+    fs                = require('fs'),
+    _                 = require('underscore');
 
 
 
 
 // API KEY
-const places = new GooglePlaces(process.env.GOOGLE_API_KEY);
+const places = new GooglePlaces(process.env.GOOGLE_PLACES_API_KEY);
 
 var file = 'campgrounds.json';
 
 var campgrounds = [];
 var currNumCampgrounds = 0;
 
+var countriesArray = [];
 
 /* ------------------------------------------------- */ 
 /* -------------- CREATE CAMPGROUNDS --------------- */
@@ -23,21 +25,22 @@ var currNumCampgrounds = 0;
 
 function createCampgroundsJSON() {
     createCampgrounds();
-   for(var i=1; i<42; i++) {
+   for(var i=1; i<70; i++) {
         setTimeout(function() {createCampgrounds() }, i*2000);
     }
     setTimeout(function() {
         var myJSON = JSON.stringify(campgrounds, null, 2);
         console.log("Num: ", currNumCampgrounds);
         record(myJSON);
-    }, 75000)
+        console.log("Num Unique Countries: ", countriesArray.length);
+    }, 180000)
 };
 
 function createCampgrounds() {
     var latlng = randomner.randCoordinates().split(",");
     for(var i=0; i<20; i++) {
-        var lat = parseFloat(latlng[0]) + 5*i;
-        var lng = parseFloat(latlng[1]) + 5*i;
+        var lat = parseFloat(latlng[0]) + 7*i;
+        var lng = parseFloat(latlng[1]) + 9*i;
         createLocation(lat +"," + lng);
     }
 }
@@ -53,6 +56,7 @@ function createLocation(latlng) {
 
 function textSearchCallback(err, response) {
     if(err || response.body.status === "INVALID_REQUEST") {
+        console.log(err);
         console.log("Invalid Request");
         return;
     }
@@ -94,6 +98,9 @@ function textSearchCallback(err, response) {
                     }
                     if(campground.country) {
                         campgrounds.push(campground);
+                        if(!_.contains(countriesArray, campground.country)) {
+                            countriesArray.push(campground.country);
+                        }
                     }
                 });
             }
@@ -128,6 +135,15 @@ function record(string) {
 /*var query = { placeid: 'ChIJZcWZbicNXBURGX0eqoK-neM' }
 places.details(query, function(err, res) { 
     console.log(JSON.stringify(res.body, null,2));
+}); */
+
+
+
+fs.readFile('880-50.json', function read(err, data) {
+    if (err) {
+        throw err;
+    }
+    var array = JSON.parse(data);
+    console.log(array.length);
 });
-*/
-createCampgroundsJSON(); 
+//createCampgroundsJSON(); 
